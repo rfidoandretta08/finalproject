@@ -1,13 +1,13 @@
 package main
 
 import (
-	"finalproject/config" // <- ini yang sebelumnya belum diimport
+	"finalproject/config"
 	"finalproject/routes"
 )
 
 func main() {
 	// Inisialisasi konfigurasi dan database
-	config.InitDB() // Pastikan nama fungsinya sesuai dengan yang kamu buat di config/database.go
+	config.InitDB()
 
 	// Inisialisasi router
 	router := routes.SetupRouter()

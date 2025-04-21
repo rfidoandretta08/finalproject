@@ -10,7 +10,6 @@ type Customer struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
 	UserID    uint           `gorm:"not null" json:"user_id"` // FK ke User
 	Nama      string         `gorm:"type:varchar(255);not null" json:"nama"`
-	Email     string         `gorm:"type:varchar(255);unique;not null" json:"email"`
 	Alamat    string         `gorm:"type:text" json:"alamat"`
 	Gender    string         `gorm:"type:enum('L','P')" json:"gender"`
 	Usia      int            `json:"usia"`

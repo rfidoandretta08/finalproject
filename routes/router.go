@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"finalproject/controllers" // Pastikan untuk mengimpor controller yang benar
+	"finalproject/controllers"
 	"finalproject/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -15,11 +15,11 @@ func SetupRouter() *gin.Engine {
 	r.POST("/login", controllers.Login)       // Memastikan Login sudah terdefinisi di controller
 
 	// Customer
-	customer := r.Group("/orders")
+	customer := r.Group("/customer")
 	{
 		customer.Use(middleware.AuthMiddleware("customer"))
 		customer.GET("/my", controllers.GetMyOrders)             // Pastikan GetMyOrders ada di controller order
-		customer.POST("/customer", controllers.CreateOrder)      // Pastikan CreateOrder ada di controller order
+		customer.POST("/", controllers.CreateOrder)              // Pastikan CreateOrder ada di controller order
 		customer.PUT("/:id/pay", controllers.PayOrder)           // Pastikan PayOrder ada di controller order
 		customer.GET("/:id/tracking", controllers.TrackingOrder) // Pastikan TrackingOrder ada di controller order
 	}
