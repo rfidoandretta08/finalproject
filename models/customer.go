@@ -7,7 +7,7 @@ import (
 )
 
 type Customer struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
+	ID        int            `gorm:"primaryKey" json:"id"`
 	UserID    uint           `gorm:"not null" json:"user_id"` // FK ke User
 	Nama      string         `gorm:"type:varchar(255);not null" json:"nama"`
 	Alamat    string         `gorm:"type:text" json:"alamat"`
@@ -17,6 +17,7 @@ type Customer struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 
-	User   *User   `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"user"`
+	User *User `gorm:"-" json:"user,omitempty"`
+
 	Orders []Order `gorm:"foreignKey:CustomerID" json:"orders,omitempty"`
 }

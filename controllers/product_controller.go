@@ -68,7 +68,14 @@ func (pc *ProductController) UpdateProduct(c *gin.Context) {
 }
 
 func (pc *ProductController) DeleteProduct(c *gin.Context) {
-	id := c.Param("id")
+	idStr := c.Param("id")
+	idUint64, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+	id := uint(idUint64)
+
 	if err := pc.productService.DeleteProduct(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

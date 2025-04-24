@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"finalproject/models"
-
 	"finalproject/services"
 
 	"net/http"
@@ -12,11 +11,28 @@ import (
 )
 
 type CustomerController struct {
-	service service.CustomerService
+	service services.CustomerService
 }
 
-func NewCustomerController(service service.CustomerService) *CustomerController {
+func NewCustomerController(service services.CustomerService) *CustomerController {
 	return &CustomerController{service: service}
+}
+
+func (ctrl *CustomerController) GetCustomerByID(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	customer, err := ctrl.service.GetCustomerByID(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Customer not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, customer)
 }
 
 func (ctrl *CustomerController) GetAllCustomers(c *gin.Context) {

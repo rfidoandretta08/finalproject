@@ -2,6 +2,7 @@ package services
 
 import (
 	"finalproject/models"
+	"fmt"
 
 	"finalproject/repositories"
 )
@@ -10,7 +11,7 @@ type ProductService interface {
 	GetAllProducts() ([]models.Product, error)
 	CreateProduct(product *models.Product) error
 	UpdateProduct(product *models.Product) error
-	DeleteProduct(id string) error
+	DeleteProduct(id uint) error
 }
 
 type productService struct {
@@ -33,6 +34,9 @@ func (s *productService) UpdateProduct(product *models.Product) error {
 	return s.repo.UpdateProduct(product)
 }
 
-func (s *productService) DeleteProduct(id string) error {
-	return s.repo.DeleteProduct(id)
+func (s *productService) DeleteProduct(id uint) error { // ← dan di sini
+	if err := s.repo.DeleteProduct(id); err != nil {
+		return fmt.Errorf("gagal menghapus produk dengan ID %d: %w", id, err)
+	}
+	return nil
 }

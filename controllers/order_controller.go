@@ -5,6 +5,7 @@ import (
 	"finalproject/services"
 
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,73 +18,81 @@ func NewOrderController(orderService services.OrderService) *OrderController {
 	return &OrderController{orderService}
 }
 
-func (oc *OrderController) GetMyOrders(c *gin.Context) {
-	userID := c.MustGet("user_id").(uint)
-
-	orders, err := oc.orderService.GetUserOrders(userID)
+// GET /orders/user/:userID
+func (h *OrderController) GetUserOrders(c *gin.Context) {
+	userIDStr := c.Param("userID")
+	userID, err := strconv.ParseUint(userIDStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch orders"})
-		return
-	}
-	c.JSON(http.StatusOK, orders)
-}
-
-func (oc *OrderController) CreateOrder(c *gin.Context) {
-	var input models.Order
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID tidak valid"})
 		return
 	}
 
-	if err := oc.orderService.CreateOrder(&input); err != nil {
+	orders, err := h.orderService.GetUserOrders(uint(userID))
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, input)
+	c.JSON(http.StatusOK, orders)
 }
 
-func (oc *OrderController) PayOrder(c *gin.Context) {
-	orderID := c.Param("id")
-
-	order, err := oc.orderService.ProcessPayment(orderID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+// POST /orders
+func (h *OrderController) CreateOrder(c *gin.Context) {
+	var order models.Order
+	if err := c.ShouldBindJSON(&order); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Payment successful, order is being shipped",
-		"order":   order,
-	})
-}
-
-func (oc *OrderController) TrackingOrder(c *gin.Context) {
-	orderID := c.Param("id")
-
-	order, err := oc.orderService.TrackOrder(orderID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+	// Hitung total & subtotal
+	if err := h.orderService.CalculateHargaDanTotal(&order); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"order_id": order.ID,
-		"status":   order.Status,
-	})
-}
-
-func (oc *OrderController) DeliverOrder(c *gin.Context) {
-	orderID := c.Param("id")
-
-	order, err := oc.orderService.CompleteDelivery(orderID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+	// Kurangi stok
+	if err := h.orderService.KurangiStok(&order); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Order marked as delivered",
-		"order":   order,
-	})
+	// Simpan order
+	if err := h.orderService.CreateOrder(&order); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, order)
+}
+
+// PUT /orders/:id/payment
+func (h *OrderController) ProcessPayment(c *gin.Context) {
+	orderID := c.Param("id")
+	order, err := h.orderService.ProcessPayment(orderID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, order)
+}
+
+// GET /orders/:id
+func (h *OrderController) TrackOrder(c *gin.Context) {
+	orderID := c.Param("id")
+	order, err := h.orderService.TrackOrder(orderID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Order tidak ditemukan"})
+		return
+	}
+	c.JSON(http.StatusOK, order)
+}
+
+func (h *OrderController) CompleteDelivery(c *gin.Context) {
+	orderID := c.Param("id")
+	order, err := h.orderService.CompleteDelivery(orderID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, order)
 }

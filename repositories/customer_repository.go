@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"finalproject/models"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -39,7 +40,13 @@ func (r *customerRepository) GetCustomerByID(id uint) (*models.Customer, error) 
 }
 
 func (r *customerRepository) UpdateCustomer(customer *models.Customer) error {
-	return r.db.Save(customer).Error
+	var existingCustomer models.Customer
+	err := r.db.First(&existingCustomer, customer.ID).Error
+	if err != nil {
+		return fmt.Errorf("customer dengan ID %d tidak ditemukan", customer.ID)
+	}
+
+	return r.db.Model(&existingCustomer).Updates(customer).Error
 }
 
 func (r *customerRepository) DeleteCustomer(id uint) error {

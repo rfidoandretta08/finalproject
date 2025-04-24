@@ -24,9 +24,15 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	hashed, err := utils.HashPassword(input.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		return
+	}
+
 	user := models.User{
 		Username: input.Username,
-		Password: input.Password,
+		Password: hashed, // simpan yang sudah di-hash
 		Email:    input.Email,
 		Phone:    input.Phone,
 		Role:     input.Role,
@@ -58,9 +64,8 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Harusnya pakai bcrypt, disederhanakan dulu:
-	if user.Password != input.Password {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password"})
+	if !utils.CheckPassword(user.Password, input.Password) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 

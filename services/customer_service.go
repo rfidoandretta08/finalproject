@@ -2,7 +2,6 @@ package services
 
 import (
 	"finalproject/models"
-
 	"finalproject/repositories"
 )
 
@@ -15,10 +14,10 @@ type CustomerService interface {
 }
 
 type customerService struct {
-	repo repository.CustomerRepository
+	repo repositories.CustomerRepository
 }
 
-func NewCustomerService(repo repository.CustomerRepository) CustomerService {
+func NewCustomerService(repo repositories.CustomerRepository) CustomerService {
 	return &customerService{repo: repo}
 }
 
