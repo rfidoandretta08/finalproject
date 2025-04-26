@@ -14,7 +14,6 @@ type OrderService interface {
 	ProcessPayment(orderID string) (*models.Order, error)
 	TrackOrder(orderID string) (*models.Order, error)
 	CompleteDelivery(orderID string) (*models.Order, error)
-	CancelOrder(orderID string) error
 }
 
 type orderService struct {
@@ -52,8 +51,7 @@ func (s *orderService) CalculateHargaDanTotal(order *models.Order) error {
 
 func (s *orderService) Transaction(order *models.Order) error {
 	for _, detail := range order.OrderDetails {
-		// False untuk transaksi pengurangan stok pada saat pembuatan order
-		err := s.productRepo.Transaction(detail.ProductID, detail.Jumlah, false)
+		err := s.productRepo.Transaction(detail.ProductID, detail.Jumlah)
 		if err != nil {
 			return err
 		}
@@ -94,24 +92,3 @@ func (s *orderService) CompleteDelivery(orderID string) (*models.Order, error) {
 	return order, err
 }
 
-func (s *orderService) CancelOrder(orderID string) error {
-	order, err := s.repo.GetByIDOrder(orderID)
-	if err != nil {
-		return err
-	}
-
-	if order.StatusOfPayment != "Dibatalkan" {
-		return fmt.Errorf("status pembayaran bukan 'Dibatalkan'")
-	}
-
-	// Kembalikan stok produk
-	for _, detail := range order.OrderDetails {
-		err := s.productRepo.Transaction(detail.ProductID, detail.Jumlah, true) // true karena ini pembatalan
-		if err != nil {
-			return fmt.Errorf("gagal mengembalikan stok produk %d: %w", detail.ProductID, err)
-		}
-	}
-
-	order.Status = "dibatalkan"
-	return s.repo.UpdateOrder(order)
-}
