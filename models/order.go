@@ -9,7 +9,7 @@ import (
 type Order struct {
 	ID              uint           `gorm:"primaryKey" json:"id"`
 	CustomerID      uint           `gorm:"not null" json:"customer_id"`
-	TanggalOrder    time.Time      `json:"tanggal_order"`
+	TanggalOrder    time.Time      `gorm:"autoCreateTime" json:"tanggal_order"`
 	Status          string         `gorm:"type:enum('diproses','dikirim','selesai');default:'diproses'" json:"status"`
 	TotalHarga      float64        `gorm:"type:decimal(10,2)" json:"total_harga"`
 	PaymentMethod   string         `gorm:"type:enum('Cash on Delivery','Transfer','Qris');default:'Cash on Delivery'" json:"payment_method"`
