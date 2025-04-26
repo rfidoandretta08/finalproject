@@ -70,8 +70,3 @@ go run main.go
 ```
 
 ---
-
-Kalau mau, aku juga bisa bantuin bikin tabel lebih lengkap — kayak request body & contoh responsenya.  
-Mau sekalian sekalian? 🔥  
-(opsional: buat langsung siap publish ke Postman docs juga) 🚀  
-Mau lanjut? 🚀💬 
