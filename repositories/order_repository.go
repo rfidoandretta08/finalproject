@@ -11,6 +11,7 @@ type OrderRepository interface {
 	CreateOrder(order *models.Order) error
 	GetByIDOrder(id string) (*models.Order, error)
 	UpdateOrder(order *models.Order) error
+	UpdateProduct(product *models.Product) error
 }
 
 type orderRepository struct {
@@ -51,4 +52,8 @@ func (r *orderRepository) GetByIDOrder(id string) (*models.Order, error) {
 
 func (r *orderRepository) UpdateOrder(order *models.Order) error {
 	return r.db.Save(order).Error
+}
+
+func (r *orderRepository) UpdateProduct(product *models.Product) error {
+	return r.db.Save(product).Error
 }

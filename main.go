@@ -40,7 +40,6 @@ func main() {
 
 	// Setup semua routes
 	routes.SetupRoutes(r, customerController, productController, orderController, userController, categoryController, reportingController)
-
 	// Run server
 	r.Run(":8080")
 }

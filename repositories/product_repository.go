@@ -13,7 +13,7 @@ type ProductRepository interface {
 	CreateProduct(product *models.Product) error
 	UpdateProduct(product *models.Product) error
 	DeleteProduct(id uint) error
-	KurangiStok(productID uint, jumlah int) error
+	Transaction(productID uint, jumlah int, isCancel bool) error
 }
 
 type productRepository struct {
@@ -72,16 +72,30 @@ func (r *productRepository) DeleteProduct(id uint) error {
 	}
 	return nil
 }
-
-func (r *productRepository) KurangiStok(productID uint, jumlah int) error {
-	res := r.db.Model(&models.Product{}).
-		Where("id = ? AND stock >= ?", productID, jumlah).
-		UpdateColumn("stock", gorm.Expr("stock - ?", jumlah))
-	if res.Error != nil {
-		return fmt.Errorf("gagal mengurangi stok: %w", res.Error)
-	}
-	if res.RowsAffected == 0 {
-		return fmt.Errorf("stok produk %d tidak mencukupi atau produk tidak ditemukan", productID)
+func (r *productRepository) Transaction(productID uint, jumlah int, isCancel bool) error {
+	if isCancel {
+		// Kembalikan stok jika status 'dibatalkan'
+		tx := r.db.Model(&models.Product{}).
+			Where("id = ?", productID).
+			UpdateColumn("stock", gorm.Expr("stock + ?", jumlah)) // Tambah stok
+		if tx.Error != nil {
+			return fmt.Errorf("gagal mengembalikan stok: %w", tx.Error)
+		}
+		if tx.RowsAffected == 0 {
+			return fmt.Errorf("produk dengan ID %d tidak ditemukan", productID)
+		}
+	} else {
+		// Kurangi stok untuk transaksi biasa
+		tx := r.db.Model(&models.Product{}).
+			Where("id = ? AND stock >= ?", productID, jumlah).
+			UpdateColumn("stock", gorm.Expr("stock - ?", jumlah)) // Kurangi stok
+		if tx.Error != nil {
+			return fmt.Errorf("gagal mengurangi stok: %w", tx.Error)
+		}
+		if tx.RowsAffected == 0 {
+			return fmt.Errorf("stok produk %d tidak mencukupi atau produk tidak ditemukan", productID)
+		}
 	}
 	return nil
+
 }

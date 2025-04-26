@@ -51,7 +51,7 @@ func (h *OrderController) CreateOrder(c *gin.Context) {
 	}
 
 	// Kurangi stok
-	if err := h.orderService.KurangiStok(&order); err != nil {
+	if err := h.orderService.Transaction(&order); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -87,6 +87,7 @@ func (h *OrderController) TrackOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, order)
 }
 
+// Complete Delivery Order
 func (h *OrderController) CompleteDelivery(c *gin.Context) {
 	orderID := c.Param("id")
 	order, err := h.orderService.CompleteDelivery(orderID)

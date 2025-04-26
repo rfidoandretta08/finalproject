@@ -15,6 +15,7 @@ func SetupRoutes(
 	userController *controllers.UserController,
 	categoryController *controllers.CategoryController,
 	reportingController *controllers.ReportingController,
+
 ) {
 	// Auth (public)
 	r.POST("/register", controllers.Register)
@@ -38,6 +39,7 @@ func SetupRoutes(
 		customer.GET("/orders/:id", orderController.TrackOrder)
 		customer.POST("/orders", orderController.CreateOrder)
 		customer.PUT("/orders/:id/payment", orderController.ProcessPayment)
+		customer.PUT("/orders/:id/complete", orderController.CompleteDelivery)
 
 		// USER
 		customer.GET("/users/:id", userController.GetUserByID)
@@ -68,7 +70,6 @@ func SetupRoutes(
 		admin.DELETE("/products/:id", productController.DeleteProduct)
 
 		// ORDER
-		admin.PUT("/orders/:id/complete", orderController.CompleteDelivery)
 		admin.GET("/orders/order/:userID", orderController.GetUserOrders)
 
 		// USER
